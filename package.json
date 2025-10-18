@@ -1,0 +1,18 @@
+{
+  "name": "snyk-clone-monorepo",
+  "version": "1.0.0",
+  "description": "A full-stack security scanner.",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "nodemon",
+    "dev:frontend": "npm start --workspace=frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
