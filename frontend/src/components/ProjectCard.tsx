@@ -1,6 +1,15 @@
 import React from 'react';
 
-const VulnerabilityChip = ({ label, count, color }) => (
+// --- VulnerabilityChip Component ---
+
+// 1. Define the props for the chip.
+interface VulnerabilityChipProps {
+  label: string;
+  count: number;
+  color: string;
+}
+
+const VulnerabilityChip: React.FC<VulnerabilityChipProps> = ({ label, count, color }) => (
   <div className="flex items-center mr-4">
     <div className={`w-2.5 h-2.5 rounded-full ${color} mr-1.5`}></div>
     <span className="font-bold text-white">{count}</span>
@@ -8,7 +17,32 @@ const VulnerabilityChip = ({ label, count, color }) => (
   </div>
 );
 
-const ProjectCard = ({ project, isSelected, onClick }) => {
+
+// --- ProjectCard Component ---
+
+// 2. We need to define the shape of the 'project' prop.
+// For consistency, we can import this from ProjectList.tsx in the future,
+// but for now, defining it here is fine.
+interface Project {
+  id: string | number;
+  name: string;
+  lastScanned: string; // Changed from lastScan for consistency with your code
+  vulnerabilities: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+}
+
+// 3. Define the props for the card.
+interface ProjectCardProps {
+  project: Project;
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, isSelected, onClick }) => {
   return (
     <div
       onClick={onClick}
@@ -30,6 +64,7 @@ const ProjectCard = ({ project, isSelected, onClick }) => {
           count={project.vulnerabilities.high}
           color="bg-orange-500"
         />
+        {/* You could easily add Medium and Low chips here as well */}
       </div>
       <p className="text-xs text-slate-400">
         Last scanned: {project.lastScanned}

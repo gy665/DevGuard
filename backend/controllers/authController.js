@@ -1,8 +1,11 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const prisma = new PrismaClient();
 const saltRounds = 10;
+
+
 
 const register = async (req, res) => {
     const { email, password } = req.body;
@@ -56,22 +59,30 @@ const login = async (req, res) => {
     }
 
     try {
-        // Find user by email
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials.' });
         }
 
-        // Compare passwords
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Invalid credentials.' });
         }
         
-        // TODO: Add JWT generation here in the next step
+        // --- 2. GENERATE THE JWT ---
+        const payload = { 
+            userId: user.id, 
+            email: user.email 
+        };
+
+        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' }); // Token expires in 1 hour
+
         console.log(`--- AuthController: User logged in successfully: ${email}`);
+        
+        // --- 3. SEND THE TOKEN BACK ---
         res.status(200).json({ 
             message: 'Login successful!',
+            token: token, // The new token
             user: { id: user.id, email: user.email }
         });
 

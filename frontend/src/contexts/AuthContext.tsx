@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import axios from 'axios';
 
+// --- (CORRECTION) ---
+// Corrected API URL to match your backend routes
 const API_URL = 'http://localhost:5001/api/auth';
 
 // Type for the User object we'll store in the frontend state
@@ -35,7 +37,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true); // We will use this to check local storage
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Load token and user from local storage on initial load
   useEffect(() => {
@@ -46,30 +48,42 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
-    setLoading(false); // Finished loading attempt
+    setLoading(false);
   }, []);
 
-  // --- REGISTER FUNCTION ---
+  // --- (IMPROVEMENT) Added error handling ---
   const register = async (email: string, password: string) => {
-    await axios.post(`${API_URL}/register`, { email, password });
+    try {
+      await axios.post(`${API_URL}/register`, { email, password });
+    } catch (error: any) {
+      // Re-throw a clean error message for the UI to catch
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error('An unexpected error occurred during registration.');
+    }
   };
 
-  // --- LOGIN FUNCTION ---
+  // --- (IMPROVEMENT) Added error handling ---
   const login = async (email: string, password: string) => {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
+    try {
+      const response = await axios.post(`${API_URL}/login`, { email, password });
+      const { token: newToken, user: newUser } = response.data;
+      
+      setToken(newToken);
+      setUser(newUser);
 
-    const { token: newToken, user: newUser } = response.data;
-    
-    // Save to state
-    setToken(newToken);
-    setUser(newUser);
-
-    // Save to local storage for persistence
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } catch (error: any) {
+      // Re-throw a clean error message for the UI to catch
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      }
+      throw new Error('An unexpected error occurred during login.');
+    }
   };
 
-  // --- LOGOUT FUNCTION ---
   const logout = () => {
     setToken(null);
     setUser(null);

@@ -1,17 +1,14 @@
-
-
-import React from 'react';
-import './App.css'; // This should exist from our earlier steps
-import AuthPage from './components/AuthPage'; // Import the AuthPage component
+// frontend/src/App.tsx
+import AuthPage from './components/AuthPage.tsx';
+import HomePage from './components/HomePage.jsx';
+import { useAuth } from './contexts/AuthContext.tsx';
 
 const App: React.FC = () => {
-  // Right now, the entire application will just be our authentication page.
-  // Later, we will add logic here to show the main dashboard after a successful login.
+  const { token } = useAuth();
   return (
     <div>
-      <AuthPage />
+      {token ? <HomePage /> : <AuthPage />}
     </div>
   );
 }
-
 export default App;

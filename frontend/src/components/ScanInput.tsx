@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { Github, Upload, Package, Play } from 'lucide-react';
 
-const ScanInput = () => {
-  const [activeTab, setActiveTab] = useState('repository');
+// Define a type for the tabs to prevent typos
+type ScanTab = 'repository' | 'upload' | 'container';
+
+const ScanInput: React.FC = () => {
+  // We use our new type to ensure activeTab is always one of the valid options
+  const [activeTab, setActiveTab] = useState<ScanTab>('repository');
   const [repoUrl, setRepoUrl] = useState('');
 
+  // The rest of your component's JSX and logic is identical.
+  // TypeScript provides safety without changing the component's structure.
+
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+    <div>
       <div className="flex gap-2 mb-4 border-b border-slate-700">
         <button
           onClick={() => setActiveTab('repository')}
@@ -62,7 +69,7 @@ const ScanInput = () => {
         {activeTab === 'container' && (
           <input
             type="text"
-            placeholder="Enter container image (e.g., nginx:latest or docker.io/library/nginx:latest)"
+            placeholder="Enter container image (e.g., nginx:latest)"
             className="flex-1 px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         )}

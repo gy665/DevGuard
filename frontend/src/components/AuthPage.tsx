@@ -1,38 +1,38 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import Login from './Login';      // Assuming Login.jsx is in the same folder
-import Register from './Register';  // Assuming Register.jsx is in the same folder
+import Login from './Login.tsx';
+import Register from './Register.tsx';
+import { useAuth } from '../contexts/AuthContext.tsx'; // 1. IMPORT THE HOOK
 
+// We need the correct API URL for the register function
 const API_URL = 'http://localhost:5001/api/auth';
 
-// We explicitly type the component as a React Functional Component
 const AuthPage: React.FC = () => {
-  // We tell TypeScript that this state will always be a boolean (true/false)
   const [showLogin, setShowLogin] = useState<boolean>(true);
+  
+  // 2. GET THE LOGIN FUNCTION FROM OUR GLOBAL CONTEXT
+  const { login } = useAuth();
 
-  // --- API Logic ---
+  // The local `handleLogin` function is now GONE.
 
-  const handleLogin = async (email: string, password: string) => {
-    // We type the function arguments
-    const response = await axios.post(`${API_URL}/login`, { email, password });
-    console.log('Login successful:', response.data);
-    alert('Login successful! Check the console.');
-  };
-
+  // The register function can stay here for now, as it's simpler.
   const handleRegister = async (email: string, password: string) => {
-    const response = await axios.post(`${API_URL}/register`, { email, password });
-    console.log('Registration successful:', response.data);
-    alert('Registration successful! Now please log in.');
-    setShowLogin(true);
+    try {
+        await axios.post(`${API_URL}/register`, { email, password });
+        alert('Registration successful! Now please log in.');
+        setShowLogin(true); // Switch to login form
+    } catch (error: any) {
+        // You can add more robust error handling here if you like
+        alert(error.response?.data?.error || "Registration failed.");
+    }
   };
-
-  // --- Render Logic ---
 
   if (showLogin) {
     return (
       <Login 
         onSwitchToRegister={() => setShowLogin(false)}
-        onLogin={handleLogin}
+        // 3. PASS THE GLOBAL `login` FUNCTION AS A PROP
+        onLogin={login}
       />
     );
   } else {
