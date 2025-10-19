@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "dev:backend": "nodemon",
-    "dev:frontend": "npm start --workspace=frontend"
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   },
   "keywords": [],
   "author": "",

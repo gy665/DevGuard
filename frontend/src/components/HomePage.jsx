@@ -28,7 +28,7 @@ const HomePage = () => {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-10 h-10 text-blue-400" />
-            <h1 className="text-4xl font-bold text-white">Security Scanner</h1>
+            <h1 className="text-4xl font-bold text-white">Devguard</h1>
           </div>
           <p className="text-slate-400 text-lg">Identify and track vulnerabilities across your projects</p>
         </div>
