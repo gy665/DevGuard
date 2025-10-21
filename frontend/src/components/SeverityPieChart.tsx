@@ -1,24 +1,8 @@
-import React from 'react'; // <-- CORRECTED THIS LINE
 
-// --- (This component is a placeholder for now) ---
-// Since we don't have real data yet, we'll create a simple placeholder
-// to avoid errors. We will replace this with the full typed code later
-// when we are fetching real scan data.
-
-const SeverityPieChart: React.FC = () => {
-    return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 h-full">
-            <h3 className="text-xl font-bold text-white mb-4">Vulnerabilities by Severity</h3>
-            <div className="flex items-center justify-center h-full">
-                <p className="text-slate-400">Scan data will be displayed here.</p>
-            </div>
-        </div>
-    );
-};
 
 
 // --- FULL CODE (TO BE USED LATER) ---
-/* 
+ 
 // When you are ready to feed real data to this component,
 // replace the placeholder code above with this full version.
 
@@ -138,6 +122,6 @@ const SeverityPieChart: React.FC<PieChartProps> = ({ data }) => {
     </div>
   );
 };
-*/
+
 
 export default SeverityPieChart;

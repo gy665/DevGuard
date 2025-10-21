@@ -1,14 +1,16 @@
 import React from 'react';
+import { Project } from '../types';
 
 // --- VulnerabilityChip Component ---
 
-// 1. Define the props for the chip.
+// 1. Define the props for the chip. THIS IS THE FIX FOR THE ERROR.
 interface VulnerabilityChipProps {
   label: string;
   count: number;
   color: string;
 }
 
+// 2. Apply the types to the component.
 const VulnerabilityChip: React.FC<VulnerabilityChipProps> = ({ label, count, color }) => (
   <div className="flex items-center mr-4">
     <div className={`w-2.5 h-2.5 rounded-full ${color} mr-1.5`}></div>
@@ -20,22 +22,9 @@ const VulnerabilityChip: React.FC<VulnerabilityChipProps> = ({ label, count, col
 
 // --- ProjectCard Component ---
 
-// 2. We need to define the shape of the 'project' prop.
-// For consistency, we can import this from ProjectList.tsx in the future,
-// but for now, defining it here is fine.
-interface Project {
-  id: string | number;
-  name: string;
-  lastScanned: string; // Changed from lastScan for consistency with your code
-  vulnerabilities: {
-    critical: number;
-    high: number;
-    medium: number;
-    low: number;
-  };
-}
 
-// 3. Define the props for the card.
+
+// 4. Define the props for the card.
 interface ProjectCardProps {
   project: Project;
   isSelected: boolean;
@@ -54,6 +43,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, isSelected, onClick 
     >
       <h3 className="text-lg font-semibold text-white mb-3">{project.name}</h3>
       <div className="flex my-3">
+        {/* This part will now work because VulnerabilityChip is correctly typed */}
         <VulnerabilityChip
           label="Critical"
           count={project.vulnerabilities.critical}
@@ -64,7 +54,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, isSelected, onClick 
           count={project.vulnerabilities.high}
           color="bg-orange-500"
         />
-        {/* You could easily add Medium and Low chips here as well */}
       </div>
       <p className="text-xs text-slate-400">
         Last scanned: {project.lastScanned}

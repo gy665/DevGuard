@@ -1,66 +1,104 @@
 import React, { useState } from 'react';
-import { Shield, Mail, Lock, UserPlus } from 'lucide-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // <-- Import useNavigate for navigation
 
-// Define the types for the props this component receives
-interface RegisterProps {
-  onSwitchToLogin: () => void;
-  onRegister: (email: string, password: string) => Promise<any>; // Changed to Promise<any>
-}
+const RegisterPage: React.FC = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null); // For success messages
 
-const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onRegister }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+    const navigate = useNavigate(); // <-- Get the navigate function from the router
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setSuccess(null);
 
-    try {
-      await onRegister(email, password);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to register.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        // --- Client-side validation ---
+        if (password !== confirmPassword) {
+            setError('Passwords do not match.');
+            return;
+        }
 
-  // All your JSX below remains exactly the same
-  return (
-     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-           <div className="flex items-center justify-center gap-3 mb-4">
-            <Shield className="w-12 h-12 text-blue-400" />
-            <h1 className="text-4xl font-bold text-white">DevGuard</h1>
-          </div>
-          <p className="text-slate-400">Create a new account</p>
+        try {
+            // Make the API call to your backend's register endpoint
+            await axios.post('http://localhost:5001/api/auth/register', {
+                email,
+                password,
+            });
+
+            // If the API call is successful, show a success message
+            setSuccess('Registration successful! Redirecting to login...');
+
+            // Wait a moment so the user can see the success message, then redirect
+            setTimeout(() => {
+                navigate('/login');
+            }, 2000);
+
+        } catch (err: any) {
+            // Display specific error from backend if available, otherwise a generic one
+            setError(err.response?.data?.error || 'Registration failed. Please try again.');
+            console.error('Registration error:', err);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+            <div className="bg-slate-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-6 text-center">Create an Account</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-slate-400 mb-2" htmlFor="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-slate-400 mb-2" htmlFor="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label className="block text-slate-400 mb-2" htmlFor="confirm-password">Confirm Password</label>
+                        <input
+                            type="password"
+                            id="confirm-password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+
+                    {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+                    {success && <p className="text-green-500 text-center mb-4">{success}</p>}
+
+                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                        Sign Up
+                    </button>
+                </form>
+                <p className="text-center text-slate-400 mt-6">
+                    Already have an account?{' '}
+                    <button onClick={() => navigate('/login')} className="text-blue-400 hover:underline">
+                        Log In
+                    </button>
+                </p>
+            </div>
         </div>
-        <div className="bg-slate-800 rounded-lg p-8 border border-slate-700">
-          <form onSubmit={handleSubmit} className="space-y-6">
-             {/* ... form content ... */}
-             {error && (<div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm">{error}</div>)}
-             <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" /><input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="you@example.com"/></div>
-             </div>
-             <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                <div className="relative"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" /><input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="••••••••"/></div>
-             </div>
-             <button type="submit" disabled={loading} className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-blue-500/50">
-                {loading ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>Creating account...</>) : (<><UserPlus className="w-4 h-4" />Create Account</>)}
-             </button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-slate-400">Already have an account?{' '}<button onClick={onSwitchToLogin} className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Sign in</button></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
-export default Register;
+export default RegisterPage;

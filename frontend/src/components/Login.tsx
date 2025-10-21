@@ -1,66 +1,84 @@
 import React, { useState } from 'react';
-import { Shield, Mail, Lock, LogIn } from 'lucide-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // <-- Import useNavigate for redirection
+import { useAuth } from '../contexts/AuthContext'; // <-- Import useAuth to get the login function
 
-// Define the types for the props this component receives
-interface LoginProps {
-  onSwitchToRegister: () => void;
-  onLogin: (email: string, password: string) => Promise<any>; // Changed to Promise<any> for now
-}
+const LoginPage: React.FC = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
-const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+    const navigate = useNavigate(); // <-- Get the navigate function from the router
+    const { login } = useAuth(); // <-- Get the login function from our context
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
 
-    try {
-      await onLogin(email, password);
-    } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+            // Make the API call to your backend's login endpoint
+            const response = await axios.post('http://localhost:5001/api/auth/login', {
+                email,
+                password,
+            });
 
-  // All your JSX below remains exactly the same
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Shield className="w-12 h-12 text-blue-400" />
-            <h1 className="text-4xl font-bold text-white">DevGuard</h1>
-          </div>
-          <p className="text-slate-400">Sign in to your account</p>
+            const { token } = response.data;
+
+            // If the API call is successful, call the login function from our context
+            if (token) {
+                login(token);
+                // And then navigate the user to the dashboard
+                navigate('/dashboard');
+            }
+
+        } catch (err) {
+            setError('Failed to log in. Please check your credentials.');
+            console.error('Login error:', err);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+            <div className="bg-slate-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+                <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-4">
+                        <label className="block text-slate-400 mb-2" htmlFor="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+                    <div className="mb-6">
+                        <label className="block text-slate-400 mb-2" htmlFor="password">Password</label>
+                        <input
+                            type="password"
+                            id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        />
+                    </div>
+                    {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+                    <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">
+                        Log In
+                    </button>
+                </form>
+                <p className="text-center text-slate-400 mt-6">
+                    Don't have an account?{' '}
+                    {/* Use navigate for switching to the register page */}
+                    <button onClick={() => navigate('/register')} className="text-blue-400 hover:underline">
+                        Sign Up
+                    </button>
+                </p>
+            </div>
         </div>
-        <div className="bg-slate-800 rounded-lg p-8 border border-slate-700">
-          <form onSubmit={handleSubmit} className="space-y-6">
-             {/* ... form content ... */}
-             {error && ( <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm">{error}</div>)}
-             <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" /><input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="you@example.com" /></div>
-             </div>
-             <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                <div className="relative"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" /><input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="••••••••" /></div>
-             </div>
-             <button type="submit" disabled={loading} className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-medium rounded-lg flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-blue-500/50">
-                {loading ? (<><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>Signing in...</>) : (<><LogIn className="w-4 h-4" />Sign In</>)}
-             </button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-slate-400">Don't have an account?{' '}<button onClick={onSwitchToRegister} className="text-blue-400 hover:text-blue-300 font-medium transition-colors">Create one</button></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
-export default Login;
+export default LoginPage;

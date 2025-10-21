@@ -1,23 +1,8 @@
-import React from 'react';
 
-// --- (This component is a placeholder for now) ---
-// We'll create a simple placeholder to avoid data-dependency errors.
-// This allows the application to render while we build the backend.
-
-const TopProjectsBarChart: React.FC = () => {
-    return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 h-full">
-            <h3 className="text-xl font-bold text-white mb-4">Top 5 Vulnerable Projects</h3>
-            <div className="flex items-center justify-center h-full">
-                <p className="text-slate-400">Project data will be displayed here.</p>
-            </div>
-        </div>
-    );
-};
 
 
 // --- FULL CODE (TO BE USED LATER) ---
-/* 
+
 // When you are ready to feed real data to this component,
 // replace the placeholder code above with this full version.
 
@@ -89,6 +74,6 @@ const TopProjectsBarChart: React.FC<BarChartProps> = ({ data }) => {
     </div>
   );
 };
-*/
+
 
 export default TopProjectsBarChart;

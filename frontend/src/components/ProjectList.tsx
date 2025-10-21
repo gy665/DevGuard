@@ -1,46 +1,11 @@
 import React from 'react';
 import { Plus } from 'lucide-react';
-// This import will show an error until we convert ProjectCard.js
-import ProjectCard from './ProjectCard';
-
-// --- (This component is a placeholder for now) ---
-// This allows the app to render while we build the backend and fetch real data.
-
-const ProjectList: React.FC = () => {
-    return (
-        <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 h-full">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-white">Projects</h2>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center gap-2 transition-all">
-                    <Plus className="w-4 h-4" />
-                    New Scan
-                </button>
-            </div>
-            <div className="flex items-center justify-center h-48">
-                <p className="text-slate-400">Project list will be displayed here.</p>
-            </div>
-        </div>
-    );
-};
-
-
-// --- FULL CODE (TO BE USED LATER) ---
-/*
-// When you have project data, replace the placeholder above with this full version.
+import ProjectCard from './ProjectCard.tsx'; // Ensure this has the .tsx extension
+import { Project } from '../types';
 
 // 1. Define the shape of a single project object. This will be used by all child components.
-interface Project {
-  id: string | number;
-  name: string;
-  source: string;
-  lastScan: string;
-  vulnerabilities: {
-    critical: number;
-    high: number;
-    medium: number;
-    low: number;
-  };
-}
+// It's good practice to make this exportable so other files can use the same type.
+
 
 // --- SecurityOverview Component ---
 
@@ -120,6 +85,5 @@ const ProjectList: React.FC<ProjectListProps> = ({ projects, selectedProjectId, 
     </div>
   );
 };
-*/
 
 export default ProjectList;

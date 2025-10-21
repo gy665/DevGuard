@@ -2,43 +2,39 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Login from './Login.tsx';
 import Register from './Register.tsx';
-import { useAuth } from '../contexts/AuthContext.tsx'; // 1. IMPORT THE HOOK
+import { useAuth } from '../contexts/AuthContext.tsx';
 
-// We need the correct API URL for the register function
 const API_URL = 'http://localhost:5001/api/auth';
 
 const AuthPage: React.FC = () => {
-  const [showLogin, setShowLogin] = useState<boolean>(true);
-  
-  // 2. GET THE LOGIN FUNCTION FROM OUR GLOBAL CONTEXT
+  const [isLoginForm, setIsLoginForm] = useState(true);
+
+  // Get the GLOBAL login function from our context
   const { login } = useAuth();
 
-  // The local `handleLogin` function is now GONE.
-
-  // The register function can stay here for now, as it's simpler.
+  // A local function for handling registration
   const handleRegister = async (email: string, password: string) => {
     try {
-        await axios.post(`${API_URL}/register`, { email, password });
-        alert('Registration successful! Now please log in.');
-        setShowLogin(true); // Switch to login form
+      await axios.post(`${API_URL}/register`, { email, password });
+      alert('Registration successful! Please log in.');
+      setIsLoginForm(true); // Switch to the login form after success
     } catch (error: any) {
-        // You can add more robust error handling here if you like
-        alert(error.response?.data?.error || "Registration failed.");
+      alert(error.response?.data?.error || "Registration failed.");
     }
   };
 
-  if (showLogin) {
+  if (isLoginForm) {
     return (
       <Login 
-        onSwitchToRegister={() => setShowLogin(false)}
-        // 3. PASS THE GLOBAL `login` FUNCTION AS A PROP
+        onSwitchToRegister={() => setIsLoginForm(false)}
+        // Pass the powerful `login` function from the context
         onLogin={login}
       />
     );
   } else {
     return (
       <Register 
-        onSwitchToLogin={() => setShowLogin(true)}
+        onSwitchToLogin={() => setIsLoginForm(true)}
         onRegister={handleRegister}
       />
     );
