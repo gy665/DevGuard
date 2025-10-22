@@ -1,93 +1,71 @@
 // backend/utils/transformer.js
 
 /**
- * Transforms the raw JSON output from `npm audit` into our standardized format.
+ * Transforms the raw JSON output from `npm audit` into our standardized format,
+ * which is compatible with the saveScanService.
  * @param {object} rawAuditData - The raw JSON object from the `npm audit --json` command.
- * @param {string} target - The name of the thing being scanned (e.g., a file name or a repo URL).
- * @param {string} scannerType - The type of scanner used ('file' or 'repository').
- * @returns {object} The standardized vulnerability report.
+ * @param {string} assetName - The name of the asset being scanned (e.g., a repo URL or filename).
+ * @param {string} assetType - The type of asset ('REPOSITORY' or 'FILE').
+ * @returns {object} A standardized object with assetName, assetType, and a list of vulnerabilities.
  */
+const transformNpmAudit = (rawAuditData, assetName, assetType) => {
+
+   const vulnerabilities = [];
+  // ...
+const auditVulnerabilities = rawAuditData.vulnerabilities || {};
 
 
-/**
- * Transforms the raw JSON output from `trivy` into our standardized format.
- * @param {object} rawTrivyData - The raw JSON object from the `trivy image --format json` command.
- * @returns {object} The standardized vulnerability report.
- */
-
-
-const transformNpmAudit = (rawAuditData, target, scannerType) => {
-  const summary = { critical: 0, high: 0, medium: 0, low: 0, total: 0 };
-  const vulnerabilities = [];
-
-  // The vulnerabilities are nested inside the 'vulnerabilities' property
-  const auditVulnerabilities = rawAuditData.vulnerabilities || {};
 
   for (const key in auditVulnerabilities) {
     const vuln = auditVulnerabilities[key];
+    // The 'via' array can contain strings or objects. We want the first object's source ID.
+    const sourceObject = vuln.via?.find(v => typeof v === 'object');
+    const sourceId = sourceObject?.source || key; // Fallback to the object key if no source ID is found
 
-    // Increment summary counters
-    summary[vuln.severity]++;
-    summary.total++;
-
-    // Find the first source for more info
-    const sourceUrl = (vuln.via && vuln.via.length > 0) ? (typeof vuln.via[0] === 'string' ? null : vuln.via[0].url) : null;
-
-    vulnerabilities.push({
-      title: vuln.name,
-      packageName: vuln.name,
+     vulnerabilities.push({
+      id: String(sourceId), // Ensure it's a string
+      name: vuln.name,
+      version: vuln.range,
       severity: vuln.severity,
-      versionRange: vuln.range,
-      description: `A '${vuln.name}' vulnerability was found in package ${vuln.name}. For more details, visit: ${sourceUrl || 'N/A'}`,
-      remediation: vuln.fixAvailable ? `Upgrade to version ${vuln.fixAvailable.version}` : 'No simple fix available. Manual investigation required.',
-      source: sourceUrl,
+      description: `Vulnerability in '${vuln.name}'.`,
     });
   }
-
-  return {
-    scanner: scannerType,
-    target: target,
-    summary,
-    vulnerabilities,
-  };
+  // ...
+  return { assetName, assetType, vulnerabilities };
 };
 
 
-const transformTrivyOutput = (rawTrivyData) => {
-  const summary = { critical: 0, high: 0, medium: 0, low: 0, total: 0 };
+/**
+ * Transforms the raw JSON output from `trivy` into our standardized format,
+ * which is compatible with the saveScanService.
+ * @param {object} rawTrivyData - The raw JSON object from `trivy image --format json`.
+ * @param {string} assetName - The name of the asset being scanned (e.g., 'nginx:latest').
+ * @param {string} assetType - The type of asset ('CONTAINER').
+ * @returns {object} A standardized object with assetName, assetType, and a list of vulnerabilities.
+ */
+const transformTrivyOutput = (rawTrivyData, assetName, assetType) => {
   const vulnerabilities = [];
-
-  // Trivy's output can have multiple result sets (e.g., for OS packages, language packages)
   const results = rawTrivyData.Results || [];
 
   for (const result of results) {
     const resultVulnerabilities = result.Vulnerabilities || [];
 
     for (const vuln of resultVulnerabilities) {
-      const severity = vuln.Severity.toLowerCase();
-
-      // Increment summary counters
-      if (summary.hasOwnProperty(severity)) {
-        summary[severity]++;
-        summary.total++;
-      }
-
       vulnerabilities.push({
-        title: vuln.Title || vuln.VulnerabilityID,
-        packageName: vuln.PkgName,
-        severity: severity,
-        versionRange: `Installed: ${vuln.InstalledVersion}`,
-        description: vuln.Description || 'No description provided.',
-        remediation: vuln.FixedVersion ? `Upgrade to version ${vuln.FixedVersion}` : 'No simple fix available. See source for details.',
-        source: vuln.PrimaryURL || null,
+        // Mapping to match the saveScanService's expectations
+        id: vuln.VulnerabilityID,
+        name: vuln.PkgName,
+        version: vuln.InstalledVersion,
+        severity: vuln.Severity,
+        description: vuln.Description || vuln.Title || 'No description provided.',
       });
     }
   }
-
+  
+  // Return the exact shape the saveScanService expects
   return {
-    scanner: 'container',
-    target: rawTrivyData.ArtifactName,
-    summary,
+    assetName: assetName, // Use the name passed into the function
+    assetType: assetType, // Use the type passed into the function
     vulnerabilities,
   };
 };

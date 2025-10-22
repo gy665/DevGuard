@@ -5,11 +5,13 @@ const fs = require('fs');
 const util = require('util');
 const { exec } = require('child_process');
 const { transformNpmAudit } = require('../utils/transformer');
+const { saveScanResults } = require('../services/saveScanService'); // <-- IMPORT THE NEW SERVICE
 
 const execPromise = util.promisify(exec);
 
 const scanRepository = async (req, res) => {
   const { repoUrl } = req.body;
+  const userId = req.user.userId; // <-- Get user ID from authMiddleware
 
   // 1. --- Input Validation ---
   if (!repoUrl) {
@@ -63,8 +65,13 @@ const scanRepository = async (req, res) => {
       }
     }
     
-    // 6. --- Transform and Send the Results ---
+    // 6. --- Transform the Results ---
     const standardizedResults = transformNpmAudit(auditResult, repoUrl, 'repository');
+    
+    // 7. --- SAVE THE RESULTS TO THE DATABASE ---
+    await saveScanResults(userId, standardizedResults);
+
+    // 8. --- Send the results back to the frontend ---
     res.status(200).json(standardizedResults);
 
   } catch (error) {
@@ -72,7 +79,7 @@ const scanRepository = async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Failed to scan the repository.', details: error.stderr || error.message });
   } finally {
-    // 7. --- Cleanup ---
+    // 9. --- Cleanup ---
     // This is critical, as repos can be very large.
     if (fs.existsSync(tempDir)) {
       console.log(`--- RepoScanner: Cleaning up directory ${tempDir}`);

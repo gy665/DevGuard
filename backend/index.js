@@ -14,11 +14,15 @@ const apiRoutes = require('./routes/api');
 console.log(`[SERVER START] Is JWT_SECRET loaded? ${process.env.JWT_SECRET ? '✅ Yes' : '❌ No, it is UNDEFINED!'}`);
 
 
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173' // <-- IMPORTANT: Use your frontend's actual port
+}));
+
 app.use(express.json());
 
 // Routes

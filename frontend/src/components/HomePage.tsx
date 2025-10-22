@@ -1,8 +1,8 @@
 // frontend/src/components/HomePage.tsx
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // <-- Re-add axios
-import { useAuth } from '../contexts/AuthContext'; // <-- Re-add AuthContext
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 import { DashboardData, Project, Vulnerability } from '../types';
 
 // --- YOUR ORIGINAL COMPONENT IMPORTS ---
@@ -16,12 +16,20 @@ import StatCard from './StatCard';
 
 const HomePage: React.FC = () => {
     // --- AUTHENTICATION & STATE HOOKS ---
-    const { user, logout, token } = useAuth(); // <-- Get user, logout, and token
+    const { user, logout, token } = useAuth();
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedProjectId, setSelectedProjectId] = useState<string | number | null>(null);
     const [selectedProjectVulnerabilities, setSelectedProjectVulnerabilities] = useState<Vulnerability[]>([]);
+    
+    // --- ADD THIS TRIGGER STATE ---
+    const [scanCounter, setScanCounter] = useState(0);
+
+    // --- REFRESH FUNCTION ---
+    const refreshDashboard = () => {
+        setScanCounter(prev => prev + 1); // Incrementing this will re-trigger the useEffect
+    };
 
     // --- EFFECT TO FETCH LIVE DATA ---
     useEffect(() => {
@@ -36,6 +44,7 @@ const HomePage: React.FC = () => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 setData(response.data);
+                setError(null); // Clear any previous errors
             } catch (err) {
                 console.error("Failed to load dashboard data:", err);
                 setError('Failed to load dashboard data.');
@@ -44,14 +53,26 @@ const HomePage: React.FC = () => {
             }
         };
         fetchDashboardData();
-    }, [token]); // <-- Effect runs when the token changes
+    }, [token, scanCounter]); // <-- ADD scanCounter to the dependency array
 
-    // --- LOADING AND ERROR STATES (Unchanged) ---
+    // --- LOADING AND ERROR STATES ---
     if (loading) {
         return <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">Loading Dashboard...</div>;
     }
     if (error || !data) {
-        return <div className="min-h-screen bg-slate-900 text-red-500 flex items-center justify-center">{error || 'Could not load data.'}</div>;
+        return (
+            <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-500 mb-4">{error || 'Could not load data.'}</div>
+                    <button 
+                        onClick={refreshDashboard}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     // --- YOUR FULL, ORIGINAL UI (Now with real data) ---
@@ -69,7 +90,13 @@ const HomePage: React.FC = () => {
                         <p className="text-slate-400 text-sm">Identify and track vulnerabilities across your projects</p>
                     </div>
                 </div>
-                <div className="flex items-center self-end sm:self-center">
+                <div className="flex items-center self-end sm:self-center gap-4">
+                    <button 
+                        onClick={refreshDashboard}
+                        className="bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors"
+                    >
+                        Refresh
+                    </button>
                     <span className="text-slate-400 text-sm mr-4 hidden md:inline">Welcome, {user?.email}</span>
                     <button onClick={logout} className="bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors">
                         Logout
@@ -80,7 +107,8 @@ const HomePage: React.FC = () => {
             {/* The rest of your UI is exactly the same as in Phase 1 */}
             <main className="space-y-8">
                 <div className="bg-slate-800 p-6 rounded-lg border border-slate-700">
-                    <ScanInput />
+                    {/* Pass the refresh function down as a prop */}
+                    <ScanInput onScanComplete={refreshDashboard} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard label="Critical" count={severityOverview.critical} />

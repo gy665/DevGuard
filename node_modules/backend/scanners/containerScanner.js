@@ -4,12 +4,16 @@ const util = require('util');
 const { exec } = require('child_process');
 // Import our new centralized transformer
 const { transformTrivyOutput } = require('../utils/transformer');
+// Import the save service
+const { saveScanResults } = require('../services/saveScanService');
 
 // Promisify exec for async/await
 const execPromise = util.promisify(exec);
 
 const scanContainer = async (req, res) => {
     const { imageName } = req.body;
+    // Get user ID from auth middleware
+    const userId = req.user.userId;
 
     if (!imageName) {
         return res.status(400).json({ error: 'Image name is required' });
@@ -31,7 +35,10 @@ const scanContainer = async (req, res) => {
         // The catch block is for true execution errors (e.g., Trivy not installed, image not found).
         
         const rawTrivyData = JSON.parse(stdout);
-        const standardizedResults = transformTrivyOutput(rawTrivyData);
+       const standardizedResults = transformTrivyOutput(rawTrivyData, sanitizedImageName, 'CONTAINER');
+        
+        // Now the save service will receive the correct, defined values
+        await saveScanResults(userId, standardizedResults);
         
         res.status(200).json(standardizedResults);
 

@@ -40,7 +40,7 @@ model User {
 
 model ScannedAsset {
   id        String    @id @default(cuid())
-  name      String // e.g., "nginx:latest" or "https://github.com/user/repo.git"
+  name      String    // e.g., "nginx:latest" or "https://github.com/user/repo.git"
   type      AssetType
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -49,6 +49,11 @@ model ScannedAsset {
   userId String
 
   scans Scan[]
+
+  // This creates the composite unique key.
+  // The Prisma Client will automatically understand that it can
+  // now find a ScannedAsset using { userId, name, type }.
+  @@unique([userId, name, type])
 }
 
 model Scan {

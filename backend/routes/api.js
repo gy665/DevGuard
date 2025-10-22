@@ -8,9 +8,9 @@ const { register, login } = require('../controllers/authController');
 const { getDashboardData } = require('../controllers/dashboardController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-router.post('/scan/container', scanContainer);
-router.post('/scan/file', upload.single('scanFile'), scanFile);
-router.post('/scan/repository', scanRepository);
+router.post('/scan/container', authMiddleware, scanContainer);
+router.post('/scan/file', authMiddleware, upload.single('scanFile'), scanFile);
+router.post('/scan/repository', authMiddleware, scanRepository);
 
 
 //user authentification
