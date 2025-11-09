@@ -4,7 +4,7 @@ const { scanContainer } = require('../scanners/containerScanner');
 const { upload, scanFile } = require('../scanners/fileScanner');
 const { scanRepository } = require('../scanners/repoScanner');
 
-const { register, login } = require('../controllers/authController');
+const { register, login, verifyToken } = require('../controllers/authController');
 const { getDashboardData } = require('../controllers/dashboardController');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -17,6 +17,9 @@ router.post('/scan/repository', authMiddleware, scanRepository);
 
 router.post('/auth/register', register);
 router.post('/auth/login', login);
+
+
+router.get('/auth/verify', authMiddleware, verifyToken);
 
 
 

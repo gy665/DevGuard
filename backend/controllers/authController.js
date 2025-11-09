@@ -63,10 +63,19 @@ const login = async (req, res) => {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
+
+
+
+};
+
+const verifyToken = (req, res) => {
+    
+    res.status(200).json({ user: req.user });
 };
 
 // Export the functions so the router can use them
 module.exports = {
     register,
     login,
+    verifyToken,
 };

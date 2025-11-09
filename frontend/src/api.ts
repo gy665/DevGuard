@@ -68,3 +68,5 @@ export const scanFileApi = (file: File) => {
         },
     });
 };
+
+export default apiClient;
